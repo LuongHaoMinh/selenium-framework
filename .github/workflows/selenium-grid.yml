@@ -1,0 +1,45 @@
+name: Selenium Grid Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      selenium-hub:
+        image: selenium/hub:4.18.1
+        ports:
+          - 4444:4444
+
+      chrome:
+        image: selenium/node-chrome:4.18.1
+        env:
+          SE_EVENT_BUS_HOST: selenium-hub
+        options: >-
+          --shm-size="2g"
+
+      firefox:
+        image: selenium/node-firefox:4.18.1
+        env:
+          SE_EVENT_BUS_HOST: selenium-hub
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Wait for Grid
+        run: sleep 20
+
+      - name: Run tests
+        run: mvn clean test "-Dgrid.url=http://localhost:4444"
