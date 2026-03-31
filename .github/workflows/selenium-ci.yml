@@ -1,29 +1,28 @@
-name: Selenium Test Suite
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch: # Để bạn có thể bấm nút chạy thủ công
-
 jobs:
   run-tests:
-    runs-on: ubuntu-latest # Máy ảo Linux của GitHub
+    runs-on: ubuntu-latest
+    # --- THÊM PHẦN NÀY VÀO ---
+    strategy:
+      matrix:
+        [cite_start]browser: [chrome, firefox] # Tạo 2 "luồng" chạy song song [cite: 144, 683]
+      [cite_start]fail-fast: false # Nếu Chrome lỗi thì Firefox vẫn cứ tiếp tục chạy [cite: 145, 684]
+    # --------------------------
     steps:
-      - uses: actions/checkout@v4 # Lấy code về
+      - uses: actions/checkout@v4
       - name: Cài Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: maven
-      - name: Chạy Selenium Tests
-        run: mvn clean test -Dbrowser=chrome -Denv=dev -DsuiteXmlFile=testng-smoke.xml
-      - name: Lưu kết quả (Artifact)
-        if: always() # Luôn lưu dù test Pass hay Fail
+
+      - name: Chạy test (${{ matrix.browser }})
+        # Sửa lệnh chạy để lấy tên browser từ matrix [cite: 149, 1106]
+        run: mvn clean test -Dbrowser=${{ matrix.browser }} -DsuiteXmlFile=testng-smoke.xml
+
+      - name: Lưu kết quả
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: |
-            target/surefire-reports/
-            target/screenshots/
+          # Đặt tên riêng cho từng trình duyệt để không bị ghi đè [cite: 155, 998]
+          name: test-results-${{ matrix.browser }} 
+          path: target/surefire-reports/
