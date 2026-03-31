@@ -26,3 +26,9 @@ jobs:
           # Đặt tên riêng cho từng trình duyệt để không bị ghi đè [cite: 155, 998]
           name: test-results-${{ matrix.browser }} 
           path: target/surefire-reports/
+      - name: Chạy Selenium Tests
+        run: mvn clean test -Dbrowser=${{ matrix.browser }}
+        env:
+          # Robot sẽ lấy giá trị từ GitHub Secrets dán vào biến môi trường này
+          APP_USERNAME: ${{ secrets.SAUCEDEMO_USERNAME }}
+          APP_PASSWORD: ${{ secrets.SAUCEDEMO_PASSWORD }}
