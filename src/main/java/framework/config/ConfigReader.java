@@ -8,9 +8,7 @@ public class ConfigReader {
     private static final Properties props = new Properties();
     private static ConfigReader instance;
 
-    // Private constructor cho Singleton Pattern
     private ConfigReader() {
-        // Mặc định là "dev" nếu không truyền tham số env
         String env = System.getProperty("env", "dev");
         String file = "src/test/resources/config-" + env + ".properties";
 
@@ -28,6 +26,37 @@ public class ConfigReader {
         }
         return instance;
     }
+
+    // --- PHẦN SỬA ĐỔI CHO BÀI 3 ---
+
+    /**
+     * Lấy Username: Ưu tiên đọc từ GitHub Secrets (biến môi trường), 
+     * nếu không có thì đọc từ file properties local.
+     */
+    public String getUsername() {
+        String username = System.getenv("APP_USERNAME");
+        if (username == null || username.isBlank()) {
+            username = props.getProperty("app.username", "standard_user");
+        }
+        return username;
+    }
+
+    /**
+     * Lấy Password: Ưu tiên đọc từ GitHub Secrets (biến môi trường), 
+     * nếu không có thì đọc từ file properties local.
+     */
+    public String getPassword() {
+        // Ưu tiên đọc từ biến môi trường (khi chạy trên CI/CD GitHub) 
+        String password = System.getenv("APP_PASSWORD"); 
+        
+        // Nếu không có (khi chạy máy cá nhân), đọc từ file config [cite: 204, 951]
+        if (password == null || password.isBlank()) {
+            password = props.getProperty("app.password", "secret_sauce");
+        }
+        return password;
+    }
+
+    // ------------------------------
 
     public String getBaseUrl() {
         return props.getProperty("base.url");
